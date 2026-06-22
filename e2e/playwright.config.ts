@@ -46,7 +46,7 @@ export default defineConfig({
         command: webServerCommand,
         url: `${baseURL}/api`,
         cwd: rootDir,
-        reuseExistingServer: !process.env.CI && !useProductionServer,
+        reuseExistingServer: !process.env.CI && (useExternalServer || !useProductionServer),
         timeout: webServerTimeout,
       },
   projects: [

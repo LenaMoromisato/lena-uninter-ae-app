@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "dev:e2e": "E2E_DEV=1 E2E_DISABLE_HMR=1 next dev --webpack",
+    "dev:e2e": "E2E_DEV=1 next dev --webpack",
     "build:e2e": "E2E_DEV=1 prisma generate && E2E_DEV=1 next build --webpack",
     "start:e2e": "E2E_DEV=1 prisma generate && E2E_DEV=1 next start -p 3000",
     "serve:e2e": "pnpm build:e2e && pnpm start:e2e",
@@ -21,7 +21,7 @@
     "e2e:install": "playwright install chromium",
     "e2e:clean": "node e2e/scripts/clean-output.mjs",
     "e2e:seed": "tsx e2e/seed/run-seed.ts",
-    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts",
     "e2e:ui": "node e2e/scripts/run-ui.mjs",
     "e2e:ui:all": "node e2e/scripts/run-ui.mjs --all",
     "e2e:screenshots": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts --project=screenshots",

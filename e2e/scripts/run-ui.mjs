@@ -38,6 +38,7 @@ const run = spawnSync('pnpm', playwrightArgs, {
   env: {
     ...process.env,
     E2E_UI: '1',
+    E2E_PRODUCTION: '1',
     // Evita ZIP de trace truncado no UI mode (playwright#41351, playwright#37887).
     PLAYWRIGHT_TRACING_NO_WEBSOCKET_FRAMES: '1',
   },

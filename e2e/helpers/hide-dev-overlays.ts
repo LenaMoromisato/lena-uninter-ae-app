@@ -18,7 +18,7 @@ export async function hideDevOverlays(page: Page) {
   const devTools = page.getByRole('button', { name: /Next\.js Dev Tools/i });
   if (await devTools.count()) {
     await devTools.evaluate((button) => {
-      let root: HTMLElement | null = button;
+      let root: Element | null = button;
       while (root?.parentElement && root.parentElement.tagName !== 'BODY') {
         root = root.parentElement;
       }

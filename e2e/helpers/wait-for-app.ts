@@ -73,24 +73,15 @@ async function waitForPageQuiet(page: Page, extraMs = 350) {
   await page.waitForTimeout(extraMs);
 }
 
-async function waitForDevHydration(page: Page) {
-  await page.waitForFunction(
-    () => window.__NEXT_HYDRATED === true || document.readyState === 'complete',
-    undefined,
-    { timeout: 30_000, polling: 50 }
-  );
-
-  // Webpack HMR pode disparar hmrRefresh logo apos hydrate no dev server.
-  await page.waitForTimeout(300);
+async function waitForPageSettled(page: Page) {
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForFunction(() => document.readyState === 'complete', { timeout: 30_000 });
+  await page.waitForTimeout(400);
 }
 
 /** Aguarda hidratação do App Router e guards de sessão antes de interagir. */
 export async function waitForRouteSettled(page: Page) {
-  await page.waitForLoadState('domcontentloaded');
-  await page.waitForFunction(() => document.readyState === 'complete', { timeout: 30_000 });
-
   const timeout = 30_000;
-  const url = page.url();
 
   await page.waitForFunction(
     () => {
@@ -111,8 +102,8 @@ export async function waitForRouteSettled(page: Page) {
 
   await page.locator('h1, main').first().waitFor({ state: 'visible', timeout });
 
-  if (url.includes('/app') || url.includes('/admin')) {
-    await waitForDevHydration(page);
+  if (page.url().includes('/app') || page.url().includes('/admin')) {
+    await waitForPageSettled(page);
   }
 
   if (page.url().includes('/entrar')) {

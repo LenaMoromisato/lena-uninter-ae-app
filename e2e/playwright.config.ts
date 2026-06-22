@@ -12,7 +12,11 @@ loadEnv({ path: path.join(e2eDir, '.env'), override: true });
 
 const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
 const useExternalServer = process.env.E2E_USE_EXTERNAL_SERVER === '1';
+const useProductionServer = process.env.E2E_PRODUCTION === '1';
 const isUiMode = process.env.E2E_UI === '1';
+
+const webServerCommand = useProductionServer ? 'pnpm serve:e2e' : 'pnpm dev:e2e';
+const webServerTimeout = useProductionServer ? 300_000 : 120_000;
 
 export default defineConfig({
   testDir: path.join(e2eDir, 'specs'),
@@ -39,12 +43,11 @@ export default defineConfig({
   webServer: useExternalServer
     ? undefined
     : {
-        // Webpack evita erro do Swagger UI com Turbopack (OpenApi3_1Element.refract).
-        command: 'pnpm dev:e2e',
+        command: webServerCommand,
         url: `${baseURL}/api`,
         cwd: rootDir,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000,
+        reuseExistingServer: !process.env.CI && !useProductionServer,
+        timeout: webServerTimeout,
       },
   projects: [
     {

@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "dev:e2e": "E2E_DEV=1 __NEXT_TEST_MODE=1 next dev --webpack",
+    "dev:e2e": "E2E_DEV=1 E2E_DISABLE_HMR=1 next dev --webpack",
+    "build:e2e": "E2E_DEV=1 prisma generate && E2E_DEV=1 next build --webpack",
+    "start:e2e": "E2E_DEV=1 prisma generate && E2E_DEV=1 next start -p 3000",
+    "serve:e2e": "pnpm build:e2e && pnpm start:e2e",
     "build": "prisma generate && next build",
     "start": "prisma generate &&next start",
     "lint": "eslint",
@@ -21,10 +24,10 @@
     "e2e": "playwright test -c e2e/playwright.config.ts",
     "e2e:ui": "node e2e/scripts/run-ui.mjs",
     "e2e:ui:all": "node e2e/scripts/run-ui.mjs --all",
-    "e2e:screenshots": "playwright test -c e2e/playwright.config.ts --project=screenshots",
-    "e2e:demo": "playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/mvp-journey.spec.ts",
-    "e2e:video": "playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/full-platform-tour.spec.ts && node e2e/scripts/copy-latest-video.mjs platform-tour.webm",
-    "e2e:video:headed": "playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/full-platform-tour.spec.ts --headed && node e2e/scripts/copy-latest-video.mjs platform-tour.webm",
+    "e2e:screenshots": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts --project=screenshots",
+    "e2e:demo": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/mvp-journey.spec.ts",
+    "e2e:video": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/full-platform-tour.spec.ts && node e2e/scripts/copy-latest-video.mjs platform-tour.webm",
+    "e2e:video:headed": "E2E_PRODUCTION=1 playwright test -c e2e/playwright.config.ts --project=setup --project=demo-video e2e/specs/full-platform-tour.spec.ts --headed && node e2e/scripts/copy-latest-video.mjs platform-tour.webm",
     "e2e:report": "playwright show-report e2e/output/report"
   },
   "repository": {

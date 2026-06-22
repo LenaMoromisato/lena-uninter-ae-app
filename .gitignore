@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# Build / cache
+build/
+dist/
+*.tsbuildinfo
+.eslintcache
+
+# Environment (manter apenas o exemplo versionado)
+.env
+.env.*
+!.env.example
+
+# Prisma — client gerado (regenerar com pnpm db:generate)
+/src/core/lib/prisma
+
+# Logs e debug
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testes
+coverage/
+e2e/output/
+e2e/.seed-state.json
+playwright-report/
+test-results/
+
+# Deploy
+.vercel
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Editores (preferências locais; compartilhe settings de equipe via commit explícito)
+.idea/
+*.swp
+*.swo

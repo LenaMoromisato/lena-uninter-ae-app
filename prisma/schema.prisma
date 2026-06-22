@@ -1,0 +1,201 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/core/lib/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MentorshipRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+}
+
+enum EventRegistrationStatus {
+  REGISTERED
+  CANCELLED
+}
+
+enum NotificationType {
+  MENTORSHIP_REQUEST
+  MENTORSHIP_ACCEPTED
+  MENTORSHIP_REJECTED
+  NEW_MESSAGE
+  EVENT_REGISTRATION
+}
+
+model User {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  supabaseAuthUserId       String                    @unique @db.Uuid
+  email                    String                    @unique
+  firstName                String
+  lastName                 String
+  birthDate                DateTime?                 @db.Timestamptz(6)
+  linkedinUrl              String?
+  meta                     Json?
+  primaryRoleId            String                    @db.Uuid
+  primaryRole              Role                      @relation(fields: [primaryRoleId], references: [id])
+  profile                  UserProfile?
+  sentMentorships          MentorshipRequest[]       @relation("MentorshipRequestStudent")
+  receivedMentorships      MentorshipRequest[]       @relation("MentorshipRequestMentor")
+  conversationParticipants ConversationParticipant[]
+  messages                 Message[]
+  notifications            Notification[]
+  createdEvents            Event[]
+  eventRegistrations       EventRegistration[]
+  createdAt                DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt                DateTime                  @updatedAt @db.Timestamptz(6)
+}
+
+model UserProfile {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @unique @db.Uuid
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  programmingLanguages String[] @default([])
+  workArea             String?
+  experienceYears      Int?
+  education            Json?
+  meta                 Json?
+  createdAt            DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime @updatedAt @db.Timestamptz(6)
+}
+
+model Role {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique
+  label           String
+  description     String?
+  isSystem        Boolean          @default(false)
+  users           User[]
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(6)
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  code            String           @unique
+  resource        String
+  action          String
+  label           String
+  description     String?
+  isSystem        Boolean          @default(true)
+  rolePermissions RolePermission[]
+  createdAt       DateTime         @default(now()) @db.Timestamptz(6)
+}
+
+model RolePermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @db.Timestamptz(6)
+
+  @@unique([roleId, permissionId])
+}
+
+model MentorshipRequest {
+  id              String                  @id @default(uuid()) @db.Uuid
+  studentId       String                  @db.Uuid
+  mentorId        String                  @db.Uuid
+  message         String
+  status          MentorshipRequestStatus @default(PENDING)
+  responseMessage String?
+  requestedAt     DateTime                @default(now()) @db.Timestamptz(6)
+  respondedAt     DateTime?               @db.Timestamptz(6)
+  student         User                    @relation("MentorshipRequestStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  mentor          User                    @relation("MentorshipRequestMentor", fields: [mentorId], references: [id], onDelete: Cascade)
+  conversation    Conversation?
+  createdAt       DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime                @updatedAt @db.Timestamptz(6)
+}
+
+model Conversation {
+  id                  String                    @id @default(uuid()) @db.Uuid
+  mentorshipRequestId String?                   @unique @db.Uuid
+  mentorshipRequest   MentorshipRequest?        @relation(fields: [mentorshipRequestId], references: [id], onDelete: SetNull)
+  participants        ConversationParticipant[]
+  messages            Message[]
+  createdAt           DateTime                  @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime                  @updatedAt @db.Timestamptz(6)
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid()) @db.Uuid
+  conversationId String       @db.Uuid
+  userId         String       @db.Uuid
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now()) @db.Timestamptz(6)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id              String       @id @default(uuid()) @db.Uuid
+  conversationId  String       @db.Uuid
+  senderId        String       @db.Uuid
+  parentMessageId String?      @db.Uuid
+  body            String
+  meta            Json?
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  parentMessage   Message?     @relation("MessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies         Message[]    @relation("MessageReplies")
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  readAt    DateTime?        @db.Timestamptz(6)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now()) @db.Timestamptz(6)
+}
+
+model Event {
+  id             String              @id @default(uuid()) @db.Uuid
+  createdById    String              @db.Uuid
+  title          String
+  description    String
+  location       String?
+  isOnline       Boolean             @default(false)
+  relevanceScore Int                 @default(0)
+  capacity       Int?
+  startsAt       DateTime            @db.Timestamptz(6)
+  endsAt         DateTime            @db.Timestamptz(6)
+  status         EventStatus         @default(DRAFT)
+  meta           Json?
+  createdBy      User                @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  registrations  EventRegistration[]
+  createdAt      DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime            @updatedAt @db.Timestamptz(6)
+}
+
+model EventRegistration {
+  id        String                  @id @default(uuid()) @db.Uuid
+  eventId   String                  @db.Uuid
+  userId    String                  @db.Uuid
+  status    EventRegistrationStatus @default(REGISTERED)
+  event     Event                   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime                @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime                @updatedAt @db.Timestamptz(6)
+
+  @@unique([eventId, userId])
+}

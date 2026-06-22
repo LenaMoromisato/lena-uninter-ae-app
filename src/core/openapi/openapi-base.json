@@ -1,0 +1,1217 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TechSisters API",
+    "version": "1.0.0",
+    "description": "API REST v1 para autenticacao, RBAC, perfis, mentoria, mensagens, notificacoes e eventos."
+  },
+  "servers": [{ "url": "/" }],
+  "tags": [
+    { "name": "Auth" },
+    { "name": "RBAC" },
+    { "name": "Users" },
+    { "name": "Mentorship" },
+    { "name": "Conversations" },
+    { "name": "Notifications" },
+    { "name": "Events" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ApiEnvelope": {
+        "type": "object",
+        "properties": {
+          "data": {},
+          "meta": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["firstName", "lastName", "email", "password"],
+        "properties": {
+          "firstName": { "type": "string", "example": "Ana" },
+          "lastName": { "type": "string", "example": "Souza" },
+          "birthDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "1997-03-20T00:00:00.000Z"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@example.com"
+          },
+          "password": { "type": "string", "example": "Secret123!" },
+          "linkedinUrl": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://linkedin.com/in/ana"
+          },
+          "roleCode": {
+            "type": "string",
+            "enum": ["STUDENT", "MENTOR"],
+            "example": "STUDENT"
+          },
+          "meta": { "type": "object", "additionalProperties": true },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "programmingLanguages": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["TypeScript", "Python"]
+              },
+              "workArea": { "type": "string", "example": "Backend" },
+              "experienceYears": { "type": "integer", "example": 3 },
+              "education": { "type": "object", "additionalProperties": true },
+              "meta": { "type": "object", "additionalProperties": true }
+            }
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@example.com"
+          },
+          "password": { "type": "string", "example": "Secret123!" }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": { "type": "string", "example": "refresh-token-value" }
+        }
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "required": ["accessToken", "refreshToken"],
+        "properties": {
+          "accessToken": { "type": "string", "example": "jwt-access-token" },
+          "refreshToken": { "type": "string", "example": "refresh-token-value" }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": { "type": "string", "example": "Ana" },
+          "lastName": { "type": "string", "example": "Souza" },
+          "birthDate": { "type": "string", "format": "date-time" },
+          "linkedinUrl": { "type": "string", "format": "uri" },
+          "meta": { "type": "object", "additionalProperties": true },
+          "profile": {
+            "type": "object",
+            "properties": {
+              "programmingLanguages": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["TypeScript", "Go"]
+              },
+              "workArea": {
+                "type": "string",
+                "example": "Platform Engineering"
+              },
+              "experienceYears": { "type": "integer", "example": 5 },
+              "education": { "type": "object", "additionalProperties": true },
+              "meta": { "type": "object", "additionalProperties": true }
+            }
+          }
+        }
+      },
+      "CreateMentorshipRequest": {
+        "type": "object",
+        "required": ["mentorId", "message"],
+        "properties": {
+          "mentorId": { "type": "string", "format": "uuid" },
+          "message": {
+            "type": "string",
+            "example": "Quero orientacao sobre migracao de carreira para backend."
+          }
+        }
+      },
+      "RespondMentorshipRequest": {
+        "type": "object",
+        "properties": {
+          "responseMessage": {
+            "type": "string",
+            "example": "Vamos conversar. Aceitei sua solicitacao."
+          }
+        }
+      },
+      "CreateMessageRequest": {
+        "type": "object",
+        "required": ["body"],
+        "properties": {
+          "body": {
+            "type": "string",
+            "example": "Oi! Obrigada por aceitar a mentoria."
+          },
+          "parentMessageId": { "type": "string", "format": "uuid" },
+          "meta": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "CreateEventRequest": {
+        "type": "object",
+        "required": ["title", "description", "startsAt", "endsAt"],
+        "properties": {
+          "title": { "type": "string", "example": "Oficina de TypeScript" },
+          "description": {
+            "type": "string",
+            "example": "Evento privado para aprofundar TypeScript."
+          },
+          "location": { "type": "string", "example": "Sala 3" },
+          "isOnline": { "type": "boolean", "example": false },
+          "relevanceScore": { "type": "integer", "example": 90 },
+          "capacity": { "type": "integer", "example": 50 },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-10T18:00:00.000Z"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-05-10T20:00:00.000Z"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "PUBLISHED", "CANCELLED"],
+            "example": "PUBLISHED"
+          },
+          "meta": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "RoleCatalog": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "label": { "type": "string" }
+          }
+        },
+        "example": [
+          { "code": "SUPER_ADMIN", "label": "Super administradora" },
+          { "code": "ADMIN", "label": "Administradora" },
+          { "code": "MENTOR", "label": "Mentora" },
+          { "code": "STUDENT", "label": "Aluna" }
+        ]
+      },
+      "PermissionCatalog": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "resource": { "type": "string" },
+            "action": { "type": "string" },
+            "label": { "type": "string" },
+            "description": { "type": "string" },
+            "isSystem": { "type": "boolean" }
+          }
+        },
+        "example": [
+          {
+            "code": "users.read",
+            "resource": "users",
+            "action": "read",
+            "label": "Ler usuarias",
+            "description": "Permite consultar usuarias e seus perfis.",
+            "isSystem": true
+          },
+          {
+            "code": "users.write",
+            "resource": "users",
+            "action": "write",
+            "label": "Criar usuarias",
+            "description": "Permite criar usuarias internamente.",
+            "isSystem": true
+          },
+          {
+            "code": "users.update",
+            "resource": "users",
+            "action": "update",
+            "label": "Atualizar usuarias",
+            "description": "Permite alterar usuarias.",
+            "isSystem": true
+          },
+          {
+            "code": "users.manage",
+            "resource": "users",
+            "action": "manage",
+            "label": "Gerenciar usuarias",
+            "description": "Permite operacoes administrativas completas sobre usuarias.",
+            "isSystem": true
+          },
+          {
+            "code": "roles.read",
+            "resource": "roles",
+            "action": "read",
+            "label": "Ler roles",
+            "description": "Permite consultar roles e seus vinculos de permissao.",
+            "isSystem": true
+          },
+          {
+            "code": "roles.write",
+            "resource": "roles",
+            "action": "write",
+            "label": "Criar roles",
+            "description": "Permite criar novas roles customizadas.",
+            "isSystem": true
+          },
+          {
+            "code": "roles.update",
+            "resource": "roles",
+            "action": "update",
+            "label": "Atualizar roles",
+            "description": "Permite atualizar metadados e permissoes de roles.",
+            "isSystem": true
+          },
+          {
+            "code": "roles.manage",
+            "resource": "roles",
+            "action": "manage",
+            "label": "Gerenciar roles",
+            "description": "Permite operacoes administrativas destrutivas sobre roles.",
+            "isSystem": true
+          },
+          {
+            "code": "permissions.read",
+            "resource": "permissions",
+            "action": "read",
+            "label": "Ler permissoes",
+            "description": "Permite consultar o catalogo fixo de permissoes.",
+            "isSystem": true
+          },
+          {
+            "code": "profiles.read",
+            "resource": "profiles",
+            "action": "read",
+            "label": "Ler perfis",
+            "description": "Permite consultar perfis.",
+            "isSystem": true
+          },
+          {
+            "code": "profiles.update",
+            "resource": "profiles",
+            "action": "update",
+            "label": "Atualizar perfis",
+            "description": "Permite alterar o proprio perfil ou perfis autorizados.",
+            "isSystem": true
+          },
+          {
+            "code": "mentorship_requests.read",
+            "resource": "mentorship_requests",
+            "action": "read",
+            "label": "Ler solicitacoes",
+            "description": "Permite consultar solicitacoes de mentoria.",
+            "isSystem": true
+          },
+          {
+            "code": "mentorship_requests.write",
+            "resource": "mentorship_requests",
+            "action": "write",
+            "label": "Criar solicitacoes",
+            "description": "Permite criar solicitacoes de mentoria.",
+            "isSystem": true
+          },
+          {
+            "code": "mentorship_requests.manage",
+            "resource": "mentorship_requests",
+            "action": "manage",
+            "label": "Gerenciar solicitacoes",
+            "description": "Permite aceitar ou rejeitar solicitacoes de mentoria.",
+            "isSystem": true
+          },
+          {
+            "code": "conversations.read",
+            "resource": "conversations",
+            "action": "read",
+            "label": "Ler conversas",
+            "description": "Permite consultar conversas privadas.",
+            "isSystem": true
+          },
+          {
+            "code": "messages.read",
+            "resource": "messages",
+            "action": "read",
+            "label": "Ler mensagens",
+            "description": "Permite consultar mensagens.",
+            "isSystem": true
+          },
+          {
+            "code": "messages.write",
+            "resource": "messages",
+            "action": "write",
+            "label": "Enviar mensagens",
+            "description": "Permite enviar mensagens e replies.",
+            "isSystem": true
+          },
+          {
+            "code": "notifications.read",
+            "resource": "notifications",
+            "action": "read",
+            "label": "Ler notificacoes",
+            "description": "Permite consultar notificacoes.",
+            "isSystem": true
+          },
+          {
+            "code": "notifications.update",
+            "resource": "notifications",
+            "action": "update",
+            "label": "Atualizar notificacoes",
+            "description": "Permite marcar notificacoes como lidas.",
+            "isSystem": true
+          },
+          {
+            "code": "events.read",
+            "resource": "events",
+            "action": "read",
+            "label": "Ler eventos",
+            "description": "Permite consultar eventos.",
+            "isSystem": true
+          },
+          {
+            "code": "events.write",
+            "resource": "events",
+            "action": "write",
+            "label": "Criar eventos",
+            "description": "Permite criar eventos.",
+            "isSystem": true
+          },
+          {
+            "code": "events.update",
+            "resource": "events",
+            "action": "update",
+            "label": "Atualizar eventos",
+            "description": "Permite alterar eventos.",
+            "isSystem": true
+          },
+          {
+            "code": "events.manage",
+            "resource": "events",
+            "action": "manage",
+            "label": "Gerenciar eventos",
+            "description": "Permite operacoes administrativas completas sobre eventos.",
+            "isSystem": true
+          },
+          {
+            "code": "event_registrations.write",
+            "resource": "event_registrations",
+            "action": "write",
+            "label": "Inscrever-se em eventos",
+            "description": "Permite criar inscricoes em eventos.",
+            "isSystem": true
+          }
+        ]
+      },
+      "RoleResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "code": { "type": "string", "example": "COMMUNITY_MANAGER" },
+          "label": { "type": "string", "example": "Community Manager" },
+          "description": {
+            "type": "string",
+            "example": "Role voltada para moderacao e comunidade."
+          },
+          "isSystem": { "type": "boolean", "example": false },
+          "permissionCodes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["roles.read", "permissions.read", "events.read"]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "string" },
+                "label": { "type": "string" },
+                "resource": { "type": "string" },
+                "action": { "type": "string" }
+              }
+            }
+          },
+          "userCount": { "type": "integer", "example": 3 },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateRoleRequest": {
+        "type": "object",
+        "required": ["code", "label"],
+        "properties": {
+          "code": { "type": "string", "example": "COMMUNITY_MANAGER" },
+          "label": { "type": "string", "example": "Community Manager" },
+          "description": {
+            "type": "string",
+            "example": "Gerencia operacoes da comunidade."
+          },
+          "permissionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "users.read",
+                "users.write",
+                "users.update",
+                "users.manage",
+                "roles.read",
+                "roles.write",
+                "roles.update",
+                "roles.manage",
+                "permissions.read",
+                "profiles.read",
+                "profiles.update",
+                "mentorship_requests.read",
+                "mentorship_requests.write",
+                "mentorship_requests.manage",
+                "conversations.read",
+                "messages.read",
+                "messages.write",
+                "notifications.read",
+                "notifications.update",
+                "events.read",
+                "events.write",
+                "events.update",
+                "events.manage",
+                "event_registrations.write"
+              ]
+            },
+            "example": ["roles.read", "permissions.read", "events.read"]
+          }
+        }
+      },
+      "UpdateRoleRequest": {
+        "type": "object",
+        "properties": {
+          "label": { "type": "string", "example": "Community Lead" },
+          "description": {
+            "type": "string",
+            "example": "Coordenacao de comunidade e eventos."
+          },
+          "permissionCodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "users.read",
+                "users.write",
+                "users.update",
+                "users.manage",
+                "roles.read",
+                "roles.write",
+                "roles.update",
+                "roles.manage",
+                "permissions.read",
+                "profiles.read",
+                "profiles.update",
+                "mentorship_requests.read",
+                "mentorship_requests.write",
+                "mentorship_requests.manage",
+                "conversations.read",
+                "messages.read",
+                "messages.write",
+                "notifications.read",
+                "notifications.update",
+                "events.read",
+                "events.write",
+                "events.update",
+                "events.manage",
+                "event_registrations.write"
+              ]
+            },
+            "example": [
+              "roles.read",
+              "permissions.read",
+              "events.read",
+              "events.write"
+            ]
+          }
+        }
+      },
+      "RbacMatrixResponse": {
+        "type": "object",
+        "properties": {
+          "permissions": { "$ref": "#/components/schemas/PermissionCatalog" },
+          "roles": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RoleResponse" }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Bearer token ausente, invalido ou expirado."
+      },
+      "Forbidden": {
+        "description": "Usuaria autenticada sem permissao suficiente."
+      }
+    }
+  },
+  "paths": {
+    "/v1/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Cadastrar usuaria publica",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Usuaria cadastrada com sessao inicial." }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Realizar login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Sessao ativa." } }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Renovar sessao",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RefreshRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Nova sessao emitida." } }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Encerrar sessao",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LogoutRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Refresh token revogado." } }
+      }
+    },
+    "/v1/rbac/roles": {
+      "get": {
+        "tags": ["RBAC"],
+        "summary": "Listar roles",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista paginada de roles." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["RBAC"],
+        "summary": "Criar role customizada",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateRoleRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Role criada." } }
+      }
+    },
+    "/v1/rbac/roles/{roleId}": {
+      "get": {
+        "tags": ["RBAC"],
+        "summary": "Consultar role por id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Detalhes da role." } }
+      },
+      "patch": {
+        "tags": ["RBAC"],
+        "summary": "Atualizar role e permissoes",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateRoleRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Role atualizada." } }
+      },
+      "delete": {
+        "tags": ["RBAC"],
+        "summary": "Remover role customizada",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "roleId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Role removida." } }
+      }
+    },
+    "/v1/rbac/permissions": {
+      "get": {
+        "tags": ["RBAC"],
+        "summary": "Listar catalogo fixo de permissoes",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Catalogo de permissoes sincronizado." }
+        }
+      }
+    },
+    "/v1/rbac/matrix": {
+      "get": {
+        "tags": ["RBAC"],
+        "summary": "Consultar matriz RBAC",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Matriz de roles e permissoes." }
+        }
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Listar usuarias",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista paginada de usuarias." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Provisionar usuaria via admin",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Convite enviado e usuaria local criada." }
+        }
+      }
+    },
+    "/v1/users/me": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Consultar meu perfil",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Perfil autenticado." } }
+      },
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Atualizar meu perfil",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateProfileRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Perfil atualizado." } }
+      }
+    },
+    "/v1/users/{userId}": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "Consultar usuaria por id",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Detalhes da usuaria." } }
+      }
+    },
+    "/v1/mentorship-requests": {
+      "get": {
+        "tags": ["Mentorship"],
+        "summary": "Listar solicitacoes de mentoria",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Solicitacoes relevantes para a usuaria." }
+        }
+      },
+      "post": {
+        "tags": ["Mentorship"],
+        "summary": "Criar solicitacao de mentoria",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMentorshipRequest"
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Solicitacao criada." } }
+      }
+    },
+    "/v1/mentorship-requests/{requestId}/accept": {
+      "post": {
+        "tags": ["Mentorship"],
+        "summary": "Aceitar solicitacao de mentoria",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondMentorshipRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Solicitacao aceita e conversa criada." }
+        }
+      }
+    },
+    "/v1/mentorship-requests/{requestId}/reject": {
+      "post": {
+        "tags": ["Mentorship"],
+        "summary": "Rejeitar solicitacao de mentoria",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondMentorshipRequest"
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Solicitacao rejeitada." } }
+      }
+    },
+    "/v1/conversations": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Listar conversas",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Conversas da usuaria." } }
+      }
+    },
+    "/v1/conversations/{conversationId}": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Consultar conversa",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Detalhes da conversa." } }
+      }
+    },
+    "/v1/conversations/{conversationId}/messages": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Listar mensagens da conversa",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Mensagens ordenadas por criacao." }
+        }
+      },
+      "post": {
+        "tags": ["Conversations"],
+        "summary": "Enviar mensagem",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversationId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateMessageRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Mensagem persistida." } }
+      }
+    },
+    "/v1/notifications": {
+      "get": {
+        "tags": ["Notifications"],
+        "summary": "Listar notificacoes",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Notificacoes da usuaria autenticada." }
+        }
+      }
+    },
+    "/v1/notifications/{notificationId}/read": {
+      "post": {
+        "tags": ["Notifications"],
+        "summary": "Marcar notificacao como lida",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notificationId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Notificacao atualizada." } }
+      }
+    },
+    "/v1/events": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Listar eventos",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Catalogo privado de eventos." }
+        }
+      },
+      "post": {
+        "tags": ["Events"],
+        "summary": "Criar evento",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateEventRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Evento criado." } }
+      }
+    },
+    "/v1/events/{eventId}": {
+      "get": {
+        "tags": ["Events"],
+        "summary": "Consultar evento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Detalhes do evento." } }
+      },
+      "patch": {
+        "tags": ["Events"],
+        "summary": "Atualizar evento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateEventRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Evento atualizado." } }
+      }
+    },
+    "/v1/events/{eventId}/registrations": {
+      "post": {
+        "tags": ["Events"],
+        "summary": "Inscrever-se em evento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": { "200": { "description": "Inscricao registrada." } }
+      }
+    }
+  },
+  "x-role-catalog": [
+    { "code": "SUPER_ADMIN", "label": "Super administradora" },
+    { "code": "ADMIN", "label": "Administradora" },
+    { "code": "MENTOR", "label": "Mentora" },
+    { "code": "STUDENT", "label": "Aluna" }
+  ],
+  "x-permission-catalog": [
+    {
+      "code": "users.read",
+      "resource": "users",
+      "action": "read",
+      "label": "Ler usuarias",
+      "description": "Permite consultar usuarias e seus perfis."
+    },
+    {
+      "code": "users.write",
+      "resource": "users",
+      "action": "write",
+      "label": "Criar usuarias",
+      "description": "Permite criar usuarias internamente."
+    },
+    {
+      "code": "users.update",
+      "resource": "users",
+      "action": "update",
+      "label": "Atualizar usuarias",
+      "description": "Permite alterar usuarias."
+    },
+    {
+      "code": "users.manage",
+      "resource": "users",
+      "action": "manage",
+      "label": "Gerenciar usuarias",
+      "description": "Permite operacoes administrativas completas sobre usuarias."
+    },
+    {
+      "code": "roles.read",
+      "resource": "roles",
+      "action": "read",
+      "label": "Ler roles",
+      "description": "Permite consultar roles e seus vinculos de permissao."
+    },
+    {
+      "code": "roles.write",
+      "resource": "roles",
+      "action": "write",
+      "label": "Criar roles",
+      "description": "Permite criar novas roles customizadas."
+    },
+    {
+      "code": "roles.update",
+      "resource": "roles",
+      "action": "update",
+      "label": "Atualizar roles",
+      "description": "Permite atualizar metadados e permissoes de roles."
+    },
+    {
+      "code": "roles.manage",
+      "resource": "roles",
+      "action": "manage",
+      "label": "Gerenciar roles",
+      "description": "Permite operacoes administrativas destrutivas sobre roles."
+    },
+    {
+      "code": "permissions.read",
+      "resource": "permissions",
+      "action": "read",
+      "label": "Ler permissoes",
+      "description": "Permite consultar o catalogo fixo de permissoes."
+    },
+    {
+      "code": "profiles.read",
+      "resource": "profiles",
+      "action": "read",
+      "label": "Ler perfis",
+      "description": "Permite consultar perfis."
+    },
+    {
+      "code": "profiles.update",
+      "resource": "profiles",
+      "action": "update",
+      "label": "Atualizar perfis",
+      "description": "Permite alterar o proprio perfil ou perfis autorizados."
+    },
+    {
+      "code": "mentorship_requests.read",
+      "resource": "mentorship_requests",
+      "action": "read",
+      "label": "Ler solicitacoes",
+      "description": "Permite consultar solicitacoes de mentoria."
+    },
+    {
+      "code": "mentorship_requests.write",
+      "resource": "mentorship_requests",
+      "action": "write",
+      "label": "Criar solicitacoes",
+      "description": "Permite criar solicitacoes de mentoria."
+    },
+    {
+      "code": "mentorship_requests.manage",
+      "resource": "mentorship_requests",
+      "action": "manage",
+      "label": "Gerenciar solicitacoes",
+      "description": "Permite aceitar ou rejeitar solicitacoes de mentoria."
+    },
+    {
+      "code": "conversations.read",
+      "resource": "conversations",
+      "action": "read",
+      "label": "Ler conversas",
+      "description": "Permite consultar conversas privadas."
+    },
+    {
+      "code": "messages.read",
+      "resource": "messages",
+      "action": "read",
+      "label": "Ler mensagens",
+      "description": "Permite consultar mensagens."
+    },
+    {
+      "code": "messages.write",
+      "resource": "messages",
+      "action": "write",
+      "label": "Enviar mensagens",
+      "description": "Permite enviar mensagens e replies."
+    },
+    {
+      "code": "notifications.read",
+      "resource": "notifications",
+      "action": "read",
+      "label": "Ler notificacoes",
+      "description": "Permite consultar notificacoes."
+    },
+    {
+      "code": "notifications.update",
+      "resource": "notifications",
+      "action": "update",
+      "label": "Atualizar notificacoes",
+      "description": "Permite marcar notificacoes como lidas."
+    },
+    {
+      "code": "events.read",
+      "resource": "events",
+      "action": "read",
+      "label": "Ler eventos",
+      "description": "Permite consultar eventos."
+    },
+    {
+      "code": "events.write",
+      "resource": "events",
+      "action": "write",
+      "label": "Criar eventos",
+      "description": "Permite criar eventos."
+    },
+    {
+      "code": "events.update",
+      "resource": "events",
+      "action": "update",
+      "label": "Atualizar eventos",
+      "description": "Permite alterar eventos."
+    },
+    {
+      "code": "events.manage",
+      "resource": "events",
+      "action": "manage",
+      "label": "Gerenciar eventos",
+      "description": "Permite operacoes administrativas completas sobre eventos."
+    },
+    {
+      "code": "event_registrations.write",
+      "resource": "event_registrations",
+      "action": "write",
+      "label": "Inscrever-se em eventos",
+      "description": "Permite criar inscricoes em eventos."
+    }
+  ]
+}
